@@ -13,11 +13,11 @@ is_git_repo
 
 make_editor_choice() {
 
-    echo "Which editor do you want to use for this repo?\n";
-    echo "1. VI\n";
-    echo "2. NANO\n";
-    echo "3. Your own\n"
-    echo "You Choose: ";
+    echo -e "Which editor do you want to use for this repo?\n";
+    echo -e "1. VI\n";
+    echo -e "2. NANO\n";
+    echo -e "3. Your own\n"
+    echo -e "Your choice: ";
 
     read CHOOSE_EDITOR
 }
@@ -30,13 +30,13 @@ get_editor_executable() {
 
 
 is_has_editor() {
-    SETTINGS_FILE="~/.redate-settings";
+    local SETTINGS_FILE=~/.redate-settings;
     if [ -f "$SETTINGS_FILE" ]
     then
         OUR_EDITOR=$(cat ${SETTINGS_FILE});
     elif [ ! -z "$EDITOR" ]
     then
-	OUR_EDITOR="$EDITOR";
+        OUR_EDITOR="$EDITOR";
     else
         make_editor_choice;
         if [ ${CHOOSE_EDITOR} == 3 ] || [ ${CHOOSE_EDITOR} == "3" ]; then
@@ -60,32 +60,33 @@ LIMITCHUNKS=20
 
 while [[ $# -ge 1 ]]
 do
-key="$1"
+    key="$1"
 
-case $key in
-    -c| --commits)
-    COMMITS="$2"
-    if [ -z "${COMMITS}" ]; then COMMITS="5"; fi;
+    case $key in
+        -c| --commits)
+        COMMITS="$2"
+            if [ -z "${COMMITS}" ]; then COMMITS="5"; fi;
+            shift
+            ;;
+        -l| --limit)
+            if [ -n "${$2}" ]; then LIMITCHUNKS="20"; fi;
+            shift
+            ;;
+        -d| --debug)
+            DEBUG=1
+            shift
+            ;;
+        -a| --all)
+            ALL=1
+            shift
+            ;;
+        *)
+            # unknown option
+            echo "Unknown parameter: '${key}'!"
+            exit 1
+            ;;
+    esac
     shift
-    ;;
-    -l| --limit)
-    LIMITCHUNKS="$2"
-    if [ -z "${LIMITCHUNKS}" ]; then LIMITCHUNKS="20"; fi;
-    shift
-    ;;
-    -d| --debug)
-    DEBUG=1
-    shift
-    ;;
-    -a| --all)
-    ALL=1
-    shift
-    ;;
-    *)
-    # unknown option
-    ;;
-esac
-shift
 done
 
 die () {
@@ -93,7 +94,7 @@ die () {
     exit 1
 }
 
-tmpfile=$(mktemp gitblah-XXXX)
+tmpfile=$(mktemp gitblah-XXXXX)
 [ -f "$tmpfile" ] || die "could not get tmpfile=[$tmpfile]"
 trap "rm -f $tmpfile" EXIT
 
@@ -114,8 +115,22 @@ else
     fi
 fi
 
+# Save modification timestamp of file
+TMPFILE_MOD_INITIAL_TIMESTAMP=$( stat --format=%Y $tmpfile )
+
+# Edit file
 ${VISUAL:-${EDITOR:-${OUR_EDITOR}}} $tmpfile
 
+# Retrieve current modification timestamp of file
+TMPFILE_MOD_CURRENT_TIMESTAMP=$( stat --format=%Y $tmpfile )
+
+# Stop here if no changes were made
+if [[ "${TMPFILE_MOD_INITIAL_TIMESTAMP}" = "${TMPFILE_MOD_CURRENT_TIMESTAMP}" ]] ; then
+    echo "No changes made, stopping here"
+    exit 0
+fi
+
+cat "$tmpfile"
 
 ITER=0
 COLITER=0
