@@ -64,8 +64,8 @@ do
 
     case $key in
         -c| --commits)
-        COMMITS="$2"
-            if [ -z "${COMMITS}" ]; then COMMITS="5"; fi;
+		    COMMITS="$2"
+            if [[ "${COMMITS}" =~ [1-9][0-9]* ]]; then shift; else COMMITS="5"; fi;
             shift
             ;;
         -l| --limit)
@@ -86,7 +86,6 @@ do
             exit 1
             ;;
     esac
-    shift
 done
 
 die () {
