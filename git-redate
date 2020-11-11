@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SETTINGS_FILE=~/.git-redate-settings
+
 is_git_repo() {
     git rev-parse --show-toplevel > /dev/null 2>&1
     result=$?
@@ -12,7 +14,6 @@ is_git_repo() {
 is_git_repo
 
 make_editor_choice() {
-
     echo -e "Which editor do you want to use for this repo?\n";
     echo -e "1. VI\n";
     echo -e "2. NANO\n";
@@ -23,14 +24,12 @@ make_editor_choice() {
 }
 
 get_editor_executable() {
-
     echo "What is the path to your prefered test editor?\n";
     read EDITOR_PATH
 }
 
 
 is_has_editor() {
-    local SETTINGS_FILE=~/.redate-settings;
     if [ -f "$SETTINGS_FILE" ]; then
         OUR_EDITOR=$(cat ${SETTINGS_FILE});
     elif [ ! -z "$EDITOR" ]; then
@@ -51,7 +50,6 @@ is_has_editor() {
 
 is_has_editor
 
-
 ALL=0
 COMMITS=5
 DEBUG=0
@@ -60,24 +58,27 @@ LIMITCHUNKS=20
 while [[ $# -ge 1 ]] ; do
     case "$1" in
         -a| --all)
-            ALL=1
             shift
+            ALL=1
             ;;
         -c| --commits)
             shift
             if [[ "$1" =~ ^[1-9][0-9]*$ ]]; then COMMITS=$1; shift; else echo "ERROR: invalid commits count: '$1'"; exit 2; fi
             ;;
         -d| --debug)
-            DEBUG=1
             shift
+            DEBUG=1
             ;;
         -h| --help)
+			shift
             echo "Parameters:"
             echo "  -a| --all       Process all commits. Use this if number of commits is 1 or -c would reach to first commit."
             echo "  -c| --commits N Process last N commits, default=5."
             echo "  -d| --debug     Enable debug output."
             echo "  -h| --help      Show this help message."
             echo "  -l| --limit N   Process commits in chunks/batches of size N, default=20."
+			echo "Configuration (${SETTINGS_FILE}):"
+			cat "${SETTINGS_FILE}"
             exit 0
             ;;
         -l| --limit)
@@ -86,7 +87,7 @@ while [[ $# -ge 1 ]] ; do
             ;;
         *)
             # unknown option
-            echo "ERROR: unknown parameter: '${1}'!"
+            echo "ERROR: unknown parameter: '${1}'! Use parameter '-h | --help' for a list of parameters."
             exit 1
             ;;
     esac
