@@ -31,21 +31,19 @@ get_editor_executable() {
 
 is_has_editor() {
     local SETTINGS_FILE=~/.redate-settings;
-    if [ -f "$SETTINGS_FILE" ]
-    then
+    if [ -f "$SETTINGS_FILE" ]; then
         OUR_EDITOR=$(cat ${SETTINGS_FILE});
-    elif [ ! -z "$EDITOR" ]
-    then
+    elif [ ! -z "$EDITOR" ]; then
         OUR_EDITOR="$EDITOR";
     else
-        make_editor_choice;
+        make_editor_choice
         if [ ${CHOOSE_EDITOR} == 3 ] || [ ${CHOOSE_EDITOR} == "3" ]; then
             get_editor_executable
             OUR_EDITOR=${EDITOR_PATH}
         elif [ ${CHOOSE_EDITOR} == 1 ] || [ ${CHOOSE_EDITOR} == "1" ]; then
-            OUR_EDITOR="vi";
+            OUR_EDITOR="vi"
         else
-            OUR_EDITOR="nano";
+            OUR_EDITOR="nano"
         fi
         echo ${OUR_EDITOR} > ${SETTINGS_FILE}
     fi
@@ -55,34 +53,40 @@ is_has_editor
 
 
 ALL=0
+COMMITS=5
 DEBUG=0
 LIMITCHUNKS=20
 
-while [[ $# -ge 1 ]]
-do
-    key="$1"
-
-    case $key in
-        -c| --commits)
-		    COMMITS="$2"
-            if [[ "${COMMITS}" =~ [1-9][0-9]* ]]; then shift; else COMMITS="5"; fi;
+while [[ $# -ge 1 ]] ; do
+    case "$1" in
+        -a| --all)
+            ALL=1
             shift
             ;;
-        -l| --limit)
-            if [ -n "${$2}" ]; then LIMITCHUNKS="20"; fi;
+        -c| --commits)
             shift
+            if [[ "$1" =~ ^[1-9][0-9]*$ ]]; then COMMITS=$1; shift; else echo "ERROR: invalid commits count: '$1'"; exit 2; fi
             ;;
         -d| --debug)
             DEBUG=1
             shift
             ;;
-        -a| --all)
-            ALL=1
+        -h| --help)
+            echo "Parameters:"
+            echo "  -a| --all       Process all commits. Use this if number of commits is 1 or -c would reach to first commit."
+            echo "  -c| --commits N Process last N commits, default=5."
+            echo "  -d| --debug     Enable debug output."
+            echo "  -h| --help      Show this help message."
+            echo "  -l| --limit N   Process commits in chunks/batches of size N, default=20."
+            exit 0
+            ;;
+        -l| --limit)
             shift
+            if [[ "$1" =~ ^[1-9][0-9]*$ ]]; then LIMITCHUNKS=$1; shift; else echo "ERROR: invalid limit size: '$1'"; exit 2; fi
             ;;
         *)
             # unknown option
-            echo "Unknown parameter: '${key}'!"
+            echo "ERROR: unknown parameter: '${1}'!"
             exit 1
             ;;
     esac
@@ -99,18 +103,17 @@ trap "rm -f $tmpfile" EXIT
 
 
 datefmt=%cI
-if [ "`git log -n1  --pretty=format:"$datefmt"`" == "$datefmt" ];
-then
+if [ "`git log -n1  --pretty=format:"$datefmt"`" == "$datefmt" ]; then
     datefmt=%ci
 fi
 
-if [ "${ALL}" -eq 1 ];
-then
-    git log --pretty=format:"$datefmt | %H | %s" > $tmpfile;
+if [ "${ALL}" -eq 1 ]; then
+    git log --pretty=format:"$datefmt | %H | %s" > $tmpfile
 else
-    if [ -n "${COMMITS+set}" ];
-    then git log -n ${COMMITS} --pretty=format:"$datefmt | %H | %s" > $tmpfile;
-    else git log -n 5 --pretty=format:"$datefmt | %H | %s" > $tmpfile;
+    if [ -n "${COMMITS+set}" ]; then
+		git log -n ${COMMITS} --pretty=format:"$datefmt | %H | %s" > $tmpfile
+    else
+		git log -n 5 --pretty=format:"$datefmt | %H | %s" > $tmpfile
     fi
 fi
 
@@ -138,11 +141,10 @@ declare -a COLLECTION
 COUNTCOMMITS=$(awk 'END {print NR}' $tmpfile)
 
 while read commit || [ -n "$commit" ]; do
-
     IFS="|" read date hash message <<< "$commit"
     shopt -s nocasematch
     if [[ "$date" == 'now' ]]; then
-        date=$(date +%Y-%m-%dT%H:%M:%S%z);
+        date=$(date +%Y-%m-%dT%H:%M:%S%z)
     fi
     shopt -u nocasematch
     if [ "$datefmt" == "%cI" ]
@@ -152,10 +154,8 @@ while read commit || [ -n "$commit" ]; do
         DATE_NO_SPACE="$(echo "${date}")"
     fi
 
-
     COMMIT_ENV=$(cat <<-END
-if [ \$GIT_COMMIT = $hash ];
-then
+if [ \$GIT_COMMIT = $hash ]; then
     export GIT_AUTHOR_DATE="$DATE_NO_SPACE"
     export GIT_COMMITTER_DATE="$DATE_NO_SPACE";
 fi;
@@ -164,40 +164,31 @@ END
 
     ((ITER++))
 
-    if [ "${DEBUG}" -eq 1 ] && [ $((ITER % LIMITCHUNKS)) == $((LIMITCHUNKS - 1)) ];
-    then
+    if [ "${DEBUG}" -eq 1 ] && [ $((ITER % LIMITCHUNKS)) == $((LIMITCHUNKS - 1)) ]; then
         echo "Chunk $COLITER Finished"
     fi
 
-    if [ $((ITER % LIMITCHUNKS)) == 0 ]
-    then
+    if [ $((ITER % LIMITCHUNKS)) == 0 ]; then
         ((COLITER++))
 
-        if [ "${DEBUG}" -eq 1 ];
-        then
+        if [ "${DEBUG}" -eq 1 ]; then
             echo "Chunk $COLITER Started"
         fi
 
     fi
 
     COLLECTION[$COLITER]=${COLLECTION[COLITER]}"$COMMIT_ENV"
-    if [ "${DEBUG}" -eq 1 ]
-    then
+    if [ "${DEBUG}" -eq 1 ]; then
         echo "Commit $ITER/$COUNTCOMMITS Collected"
     fi
-
 done < $tmpfile
 
 ITERATOR=0
-for each in "${COLLECTION[@]}"
-do
-
+for each in "${COLLECTION[@]}" ; do
     ((ITERATOR++))
 
-    if [ "${ALL}" -eq 1 ];
-    then
-        if [ "${DEBUG}" -eq 1 ];
-        then
+    if [ "${ALL}" -eq 1 ]; then
+        if [ "${DEBUG}" -eq 1 ]; then
             echo "Chunk $ITERATOR/"${#COLLECTION[@]}" Started"
             git filter-branch -f --env-filter "$each" -- --all
             echo "Chunk $ITERATOR/"${#COLLECTION[@]}" Finished"
@@ -205,8 +196,7 @@ do
             git filter-branch -f --env-filter "$each" -- --all >/dev/null
         fi
     else
-        if [ "${DEBUG}" -eq 1 ];
-        then
+        if [ "${DEBUG}" -eq 1 ]; then
             echo "Chunk $ITERATOR/"${#COLLECTION[@]}" Started"
             git filter-branch -f --env-filter "$each" HEAD~${COMMITS}..HEAD
             echo "Chunk $ITERATOR/"${#COLLECTION[@]}" Finished"
