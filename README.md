@@ -1,7 +1,7 @@
 # git-redate
-### Made by [Potato Labs](http://taterlabs.com)
+### Made by [Potato Labs](http://taterlabs.com) and [eXtronis](https://extronis.com)
 
-Interactively change the dates of several git commits in current branch with a single command.
+Interactively change the dates of several git commits in current branch with a single command. Improved and updated fork.
 
 ![alt tag](https://i.stack.imgur.com/yE4cQ.gif)
 
