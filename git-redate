@@ -185,37 +185,38 @@ END
     fi
 done < $tmpfile
 
+retCode=0
 ITERATOR=0
 for each in "${COLLECTION[@]}" ; do
     ((ITERATOR++))
 
+    [ "${DEBUG}" -eq 1 ] && echo "Chunk $ITERATOR/"${#COLLECTION[@]}" Started"
     if [ "${ALL}" -eq 1 ]; then
         if [ "${DEBUG}" -eq 1 ]; then
-            echo "Chunk $ITERATOR/"${#COLLECTION[@]}" Started"
             git filter-branch -f --env-filter "$each" -- --all
-            retCode=$?
-            echo "Chunk $ITERATOR/"${#COLLECTION[@]}" Finished"
         else
-            git filter-branch -f --env-filter "$each" -- --all >/dev/null
-            retCode=$?
+            git filter-branch -f --env-filter "$each" -- --all > /dev/null
         fi
+        retCode=$?
     else
         if [ "${DEBUG}" -eq 1 ]; then
-            echo "Chunk $ITERATOR/"${#COLLECTION[@]}" Started"
             git filter-branch -f --env-filter "$each" HEAD~${COMMITS}..HEAD
-            retCode=$?
-            echo "Chunk $ITERATOR/"${#COLLECTION[@]}" Finished"
         else
-            git filter-branch -f --env-filter "$each" HEAD~${COMMITS}..HEAD >/dev/null
-            retCode=$?
+            git filter-branch -f --env-filter "$each" HEAD~${COMMITS}..HEAD > /dev/null
         fi
+        retCode=$?
     fi
-    [ $retCode -ne 0 ] && break
+    [ "${DEBUG}" -eq 1 ] && echo "Chunk $ITERATOR/"${#COLLECTION[@]}" Finished"
+
+    if [ $retCode -ne 0 ] ; then
+        break
+    fi
 done
 
 if [[ $? = 0 && $retCode -eq 0 ]] ; then
     echo "Git commit dates updated. Run 'git push -f BRANCH_NAME' to push your changes."
 else
+    echo ""
     echo "ERROR! Please make sure you run this on a clean working directory."
     exit 1
 fi
