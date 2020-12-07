@@ -1,4 +1,5 @@
 #!/bin/bash
+# vi: set expandtab ts=4 sw=4:
 
 SETTINGS_FILE=~/.git-redate-settings
 
@@ -70,15 +71,15 @@ while [[ $# -ge 1 ]] ; do
             DEBUG=1
             ;;
         -h| --help)
-			shift
+            shift
             echo "Parameters:"
             echo "  -a| --all       Process all commits. Use this if number of commits is 1 or -c would reach to first commit."
             echo "  -c| --commits N Process last N commits, default=5."
             echo "  -d| --debug     Enable debug output."
             echo "  -h| --help      Show this help message."
             echo "  -l| --limit N   Process commits in chunks/batches of size N, default=20."
-			echo "Configuration (${SETTINGS_FILE}):"
-			cat "${SETTINGS_FILE}"
+            echo "Configuration (${SETTINGS_FILE}):"
+            cat "${SETTINGS_FILE}"
             exit 0
             ;;
         -l| --limit)
@@ -112,9 +113,9 @@ if [ "${ALL}" -eq 1 ]; then
     git log --pretty=format:"$datefmt | %H | %s" > $tmpfile
 else
     if [ -n "${COMMITS+set}" ]; then
-		git log -n ${COMMITS} --pretty=format:"$datefmt | %H | %s" > $tmpfile
+        git log -n ${COMMITS} --pretty=format:"$datefmt | %H | %s" > $tmpfile
     else
-		git log -n 5 --pretty=format:"$datefmt | %H | %s" > $tmpfile
+        git log -n 5 --pretty=format:"$datefmt | %H | %s" > $tmpfile
     fi
 fi
 
@@ -192,23 +193,30 @@ for each in "${COLLECTION[@]}" ; do
         if [ "${DEBUG}" -eq 1 ]; then
             echo "Chunk $ITERATOR/"${#COLLECTION[@]}" Started"
             git filter-branch -f --env-filter "$each" -- --all
+            retCode=$?
             echo "Chunk $ITERATOR/"${#COLLECTION[@]}" Finished"
         else
             git filter-branch -f --env-filter "$each" -- --all >/dev/null
+            retCode=$?
         fi
     else
         if [ "${DEBUG}" -eq 1 ]; then
             echo "Chunk $ITERATOR/"${#COLLECTION[@]}" Started"
             git filter-branch -f --env-filter "$each" HEAD~${COMMITS}..HEAD
+            retCode=$?
             echo "Chunk $ITERATOR/"${#COLLECTION[@]}" Finished"
         else
             git filter-branch -f --env-filter "$each" HEAD~${COMMITS}..HEAD >/dev/null
+            retCode=$?
         fi
     fi
+    [ $retCode -ne 0 ] && break
 done
 
-if [ $? = 0 ] ; then
+if [[ $? = 0 && $retCode -eq 0 ]] ; then
     echo "Git commit dates updated. Run 'git push -f BRANCH_NAME' to push your changes."
 else
-    echo "Git redate failed. Please make sure you run this on a clean working directory."
+    echo "ERROR! Please make sure you run this on a clean working directory."
+    exit 1
 fi
+
