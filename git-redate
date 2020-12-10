@@ -119,14 +119,21 @@ else
     fi
 fi
 
+# Add a newline to the file.
+echo '' >> $tmpfile
+
+# If the file does not end with a empty line some editors (like nano) will add one even if you save
+# the file without doing any modifications. In this case, the md5 hash is different even if the user
+# did not change any content. Adding a newline is a workaround for this.
+
 # Save modification timestamp of file
-TMPFILE_MOD_INITIAL_TIMESTAMP=$( stat --format=%Y $tmpfile )
+TMPFILE_MOD_INITIAL_TIMESTAMP=$( openssl md5 $tmpfile )
 
 # Edit file
 ${VISUAL:-${EDITOR:-${OUR_EDITOR}}} $tmpfile
 
 # Retrieve current modification timestamp of file
-TMPFILE_MOD_CURRENT_TIMESTAMP=$( stat --format=%Y $tmpfile )
+TMPFILE_MOD_CURRENT_TIMESTAMP=$( openssl md5 $tmpfile )
 
 # Stop here if no changes were made
 if [[ "${TMPFILE_MOD_INITIAL_TIMESTAMP}" = "${TMPFILE_MOD_CURRENT_TIMESTAMP}" ]] ; then
