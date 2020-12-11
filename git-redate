@@ -76,8 +76,10 @@ while [[ $# -ge 1 ]] ; do
             echo "  -h| --help      Show this help message."
             echo "  -v| --version   Show the version (${VERSION}) of git-redate"
             echo "  -l| --limit N   Process commits in chunks/batches of size N, default=20."
-            echo "Configuration (${SETTINGS_FILE}):"
-            cat "${SETTINGS_FILE}"
+            if [ -f "$SETTINGS_FILE" ]; then
+                echo "Configuration (${SETTINGS_FILE}):"
+                cat "${SETTINGS_FILE}"
+            fi
             exit 0
             ;;
         -v| --version)
