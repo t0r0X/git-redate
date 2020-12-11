@@ -12,8 +12,6 @@ is_git_repo() {
   fi
 }
 
-is_git_repo
-
 make_editor_choice() {
     echo -e "Which editor do you want to use for this repo?\n";
     echo -e "1. VI\n";
@@ -48,8 +46,6 @@ is_has_editor() {
         echo ${OUR_EDITOR} > ${SETTINGS_FILE}
     fi
 }
-
-is_has_editor
 
 ALL=0
 COMMITS=5
@@ -98,6 +94,12 @@ die () {
     echo >&2 `basename $0`: $*
     exit 1
 }
+
+# Check if working directory is a git repo
+is_git_repo
+
+# Check if editor preferences are set
+is_has_editor
 
 tmpfile=$(mktemp gitblah-XXXXX)
 [ -f "$tmpfile" ] || die "could not get tmpfile=[$tmpfile]"
