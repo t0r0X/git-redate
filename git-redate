@@ -2,6 +2,7 @@
 # vi: set expandtab ts=4 sw=4:
 
 SETTINGS_FILE=~/.git-redate-settings
+VERSION=v1.0.4
 
 is_git_repo() {
     git rev-parse --show-toplevel > /dev/null 2>&1
@@ -73,9 +74,15 @@ while [[ $# -ge 1 ]] ; do
             echo "  -c| --commits N Process last N commits, default=5."
             echo "  -d| --debug     Enable debug output."
             echo "  -h| --help      Show this help message."
+            echo "  -v| --version   Show the version (${VERSION}) of git-redate"
             echo "  -l| --limit N   Process commits in chunks/batches of size N, default=20."
             echo "Configuration (${SETTINGS_FILE}):"
             cat "${SETTINGS_FILE}"
+            exit 0
+            ;;
+        -v| --version)
+            shift
+            echo "${VERSION}"
             exit 0
             ;;
         -l| --limit)
