@@ -61,7 +61,13 @@ while [[ $# -ge 1 ]] ; do
             ;;
         -c| --commits)
             shift
-            if [[ "$1" =~ ^[1-9][0-9]*$ ]]; then COMMITS=$1; shift; else echo "ERROR: invalid commits count: '$1'"; exit 2; fi
+            if [[ "$1" =~ ^[1-9][0-9]*$ ]]; then
+                COMMITS=$1
+                shift
+            else
+                echo "ERROR: invalid commits count: '$1'"
+                exit 2
+            fi
             ;;
         -d| --debug)
             shift
@@ -89,7 +95,13 @@ while [[ $# -ge 1 ]] ; do
             ;;
         -l| --limit)
             shift
-            if [[ "$1" =~ ^[1-9][0-9]*$ ]]; then LIMITCHUNKS=$1; shift; else echo "ERROR: invalid limit size: '$1'"; exit 2; fi
+            if [[ "$1" =~ ^[1-9][0-9]*$ ]]; then
+                LIMITCHUNKS=$1
+                shift
+            else
+                echo "ERROR: invalid limit size: '$1'"
+                exit 2
+            fi
             ;;
         *)
             # unknown option
