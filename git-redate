@@ -164,7 +164,10 @@ if [[ "${TMPFILE_MOD_INITIAL_TIMESTAMP}" = "${TMPFILE_MOD_CURRENT_TIMESTAMP}" ]]
     exit 0
 fi
 
-cat "$tmpfile"
+if [ "${DEBUG}" -eq 1 ]; then
+    echo "The following changes will be applied:"
+    cat "$tmpfile"
+fi
 
 ITER=0
 COLITER=0
@@ -250,4 +253,3 @@ else
     echo "ERROR! Please make sure you run this on a clean working directory."
     exit 1
 fi
-
