@@ -1,5 +1,4 @@
 # git-redate
-### Made by [Potato Labs](http://taterlabs.com) and [eXtronis](https://extronis.com)
 
 Interactively change the dates of several git commits in current branch with a single command. Improved and updated fork.
 
@@ -49,3 +48,9 @@ Parameters:
 2. Without `EDITOR` the settings file `~/.git-redate-settings` is checked. If it does not exist, `git-redate` will ask you to specify and editor (`nano`, `vi` or `custom`) and write it to this file.
 
 The environment variable overrides the settings file anytime it is set.
+
+# Contributors
+
+* [PotatoLabs](https://github.com/PotatoLabs)
+* [eXtronics](http://extronis.com/)
+* [Christian Lölkes](https://github.com/loelkes)
