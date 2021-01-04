@@ -1,5 +1,4 @@
 # git-redate
-### Made by [Potato Labs](http://taterlabs.com) and [eXtronis](https://extronis.com)
 
 Interactively change the dates of several git commits in current branch with a single command. Improved and updated fork.
 
@@ -7,9 +6,9 @@ Interactively change the dates of several git commits in current branch with a s
 
 # Installation
 
-For Homebrew users (on macOS): you need to run `brew tap PotatoLabs/homebrew-git-redate` and then `brew install git-redate`. See Homebrew formula here: https://github.com/PotatoLabs/homebrew-git-redate
+When using Linux/BSD/Unix or macOS: you can clone this repo or download the `git-redate` file and copy it into any folders in your $PATH. Restart your terminal afterwards and you're good to go!
 
-When using Linux/BSD/Unix or macOS without Homebrew: you can clone this repo or download the `git-redate` file and copy it into any folders in your $PATH. Restart your terminal afterwards and you're good to go!
+If you're using Homebrew please note that the available version (1.0.2) is outdated.
 
 For Windows users: you copy the `git-redate` file into `${INSTALLATION_PATH}\mingw64\libexec\git-core\`. If you used the default Git installation settings, `INSTALLATION_PATH` should be `C:\Program Files\Git`.
 
@@ -32,5 +31,26 @@ Examples: \
 * Specify block size ("chunks") of commits to process: `--limit | -l <block size>`.
 * Enable debug output: `--debug | -d`.
 
+## CLI arguments
+```
+Parameters:
+  -a| --all       Process all commits. Use this if number of commits is 1 or -c would reach to first commit.
+  -c| --commits N Process last N commits, default=5.
+  -d| --debug     Enable debug output.
+  -h| --help      Show this help message.
+  -v| --version   Show the version (v1.0.4) of git-redate
+  -l| --limit N   Process commits in chunks/batches of size N, default=20.
+```
 
+## Editor preferences
 
+1. If the environment variable `EDITOR` is set, this setting will be used. You can set it with `export EDITOR=vim` if you want to use `vim`.
+2. Without `EDITOR` the settings file `~/.git-redate-settings` is checked. If it does not exist, `git-redate` will ask you to specify and editor (`nano`, `vi` or `custom`) and write it to this file.
+
+The environment variable overrides the settings file anytime it is set.
+
+# Contributors
+
+* [PotatoLabs](https://github.com/PotatoLabs)
+* [eXtronics](http://extronis.com/)
+* [Christian Lölkes](https://github.com/loelkes)

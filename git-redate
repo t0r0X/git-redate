@@ -2,6 +2,7 @@
 # vi: set expandtab ts=4 sw=4:
 
 SETTINGS_FILE=~/.git-redate-settings
+VERSION=v1.0.4
 
 is_git_repo() {
     git rev-parse --show-toplevel > /dev/null 2>&1
@@ -11,8 +12,6 @@ is_git_repo() {
         exit $result
   fi
 }
-
-is_git_repo
 
 make_editor_choice() {
     echo -e "Which editor do you want to use for this repo?\n";
@@ -31,10 +30,10 @@ get_editor_executable() {
 
 
 is_has_editor() {
-    if [ -f "$SETTINGS_FILE" ]; then
-        OUR_EDITOR=$(cat ${SETTINGS_FILE});
-    elif [ ! -z "$EDITOR" ]; then
+    if [ ! -z "$EDITOR" ]; then
         OUR_EDITOR="$EDITOR";
+    elif [ -f "$SETTINGS_FILE" ]; then
+        OUR_EDITOR=$(cat ${SETTINGS_FILE});
     else
         make_editor_choice
         if [ ${CHOOSE_EDITOR} == 3 ] || [ ${CHOOSE_EDITOR} == "3" ]; then
@@ -49,7 +48,19 @@ is_has_editor() {
     fi
 }
 
-is_has_editor
+show_editor_preference() {
+    if [ -f "$SETTINGS_FILE" ]; then
+        echo "Configuration (${SETTINGS_FILE}):"
+        cat "${SETTINGS_FILE}"
+    else
+        echo "Configuration file ${SETTINGS_FILE} does not exist yet."
+    fi
+    if [ ! -z "$EDITOR" ]; then
+        echo "Environment EDITOR: ${EDITOR}"
+    else
+        echo "Environment variable EDITOR is not set."
+    fi
+}
 
 ALL=0
 COMMITS=5
@@ -64,7 +75,13 @@ while [[ $# -ge 1 ]] ; do
             ;;
         -c| --commits)
             shift
-            if [[ "$1" =~ ^[1-9][0-9]*$ ]]; then COMMITS=$1; shift; else echo "ERROR: invalid commits count: '$1'"; exit 2; fi
+            if [[ "$1" =~ ^[1-9][0-9]*$ ]]; then
+                COMMITS=$1
+                shift
+            else
+                echo "ERROR: invalid commits count: '$1'"
+                exit 2
+            fi
             ;;
         -d| --debug)
             shift
@@ -77,14 +94,25 @@ while [[ $# -ge 1 ]] ; do
             echo "  -c| --commits N Process last N commits, default=5."
             echo "  -d| --debug     Enable debug output."
             echo "  -h| --help      Show this help message."
+            echo "  -v| --version   Show the version of git-redate"
             echo "  -l| --limit N   Process commits in chunks/batches of size N, default=20."
-            echo "Configuration (${SETTINGS_FILE}):"
-            cat "${SETTINGS_FILE}"
+            show_editor_preference
+            exit 0
+            ;;
+        -v| --version)
+            shift
+            echo "${VERSION}"
             exit 0
             ;;
         -l| --limit)
             shift
-            if [[ "$1" =~ ^[1-9][0-9]*$ ]]; then LIMITCHUNKS=$1; shift; else echo "ERROR: invalid limit size: '$1'"; exit 2; fi
+            if [[ "$1" =~ ^[1-9][0-9]*$ ]]; then
+                LIMITCHUNKS=$1
+                shift
+            else
+                echo "ERROR: invalid limit size: '$1'"
+                exit 2
+            fi
             ;;
         *)
             # unknown option
@@ -98,6 +126,12 @@ die () {
     echo >&2 `basename $0`: $*
     exit 1
 }
+
+# Check if working directory is a git repo
+is_git_repo
+
+# Check if editor preferences are set
+is_has_editor
 
 tmpfile=$(mktemp gitblah-XXXXX)
 [ -f "$tmpfile" ] || die "could not get tmpfile=[$tmpfile]"
@@ -119,14 +153,21 @@ else
     fi
 fi
 
+# Add a newline to the file.
+echo '' >> $tmpfile
+
+# If the file does not end with a empty line some editors (like nano) will add one even if you save
+# the file without doing any modifications. In this case, the md5 hash is different even if the user
+# did not change any content. Adding a newline is a workaround for this.
+
 # Save modification timestamp of file
-TMPFILE_MOD_INITIAL_TIMESTAMP=$( stat --format=%Y $tmpfile )
+TMPFILE_MOD_INITIAL_TIMESTAMP=$( openssl md5 $tmpfile )
 
 # Edit file
 ${VISUAL:-${EDITOR:-${OUR_EDITOR}}} $tmpfile
 
 # Retrieve current modification timestamp of file
-TMPFILE_MOD_CURRENT_TIMESTAMP=$( stat --format=%Y $tmpfile )
+TMPFILE_MOD_CURRENT_TIMESTAMP=$( openssl md5 $tmpfile )
 
 # Stop here if no changes were made
 if [[ "${TMPFILE_MOD_INITIAL_TIMESTAMP}" = "${TMPFILE_MOD_CURRENT_TIMESTAMP}" ]] ; then
@@ -134,7 +175,10 @@ if [[ "${TMPFILE_MOD_INITIAL_TIMESTAMP}" = "${TMPFILE_MOD_CURRENT_TIMESTAMP}" ]]
     exit 0
 fi
 
-cat "$tmpfile"
+if [ "${DEBUG}" -eq 1 ]; then
+    echo "The following changes will be applied:"
+    cat "$tmpfile"
+fi
 
 ITER=0
 COLITER=0
@@ -220,4 +264,3 @@ else
     echo "ERROR! Please make sure you run this on a clean working directory."
     exit 1
 fi
-
