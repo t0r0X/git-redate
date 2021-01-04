@@ -48,6 +48,20 @@ is_has_editor() {
     fi
 }
 
+show_editor_preference() {
+    if [ -f "$SETTINGS_FILE" ]; then
+        echo "Configuration (${SETTINGS_FILE}):"
+        cat "${SETTINGS_FILE}"
+    else
+        echo "Configuration file ${SETTINGS_FILE} does not exist yet."
+    fi
+    if [ ! -z "$EDITOR" ]; then
+        echo "Environment EDITOR: ${EDITOR}"
+    else
+        echo "Environment variable EDITOR is not set."
+    fi
+}
+
 ALL=0
 COMMITS=5
 DEBUG=0
@@ -82,10 +96,7 @@ while [[ $# -ge 1 ]] ; do
             echo "  -h| --help      Show this help message."
             echo "  -v| --version   Show the version of git-redate"
             echo "  -l| --limit N   Process commits in chunks/batches of size N, default=20."
-            if [ -f "$SETTINGS_FILE" ]; then
-                echo "Configuration (${SETTINGS_FILE}):"
-                cat "${SETTINGS_FILE}"
-            fi
+            show_editor_preference
             exit 0
             ;;
         -v| --version)
