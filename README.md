@@ -42,3 +42,10 @@ Parameters:
   -v| --version   Show the version (v1.0.4) of git-redate
   -l| --limit N   Process commits in chunks/batches of size N, default=20.
 ```
+
+## Editor preferences
+
+1. If the environment variable `EDITOR` is set, this setting will be used. You can set it with `export EDITOR=vim` if you want to use `vim`.
+2. Without `EDITOR` the settings file `~/.git-redate-settings` is checked. If it does not exist, `git-redate` will ask you to specify and editor (`nano`, `vi` or `custom`) and write it to this file.
+
+The environment variable overrides the settings file anytime it is set.
