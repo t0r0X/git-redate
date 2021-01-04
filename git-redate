@@ -30,10 +30,10 @@ get_editor_executable() {
 
 
 is_has_editor() {
-    if [ -f "$SETTINGS_FILE" ]; then
-        OUR_EDITOR=$(cat ${SETTINGS_FILE});
-    elif [ ! -z "$EDITOR" ]; then
+    if [ ! -z "$EDITOR" ]; then
         OUR_EDITOR="$EDITOR";
+    elif [ -f "$SETTINGS_FILE" ]; then
+        OUR_EDITOR=$(cat ${SETTINGS_FILE});
     else
         make_editor_choice
         if [ ${CHOOSE_EDITOR} == 3 ] || [ ${CHOOSE_EDITOR} == "3" ]; then
