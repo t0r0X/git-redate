@@ -80,7 +80,7 @@ while [[ $# -ge 1 ]] ; do
             echo "  -c| --commits N Process last N commits, default=5."
             echo "  -d| --debug     Enable debug output."
             echo "  -h| --help      Show this help message."
-            echo "  -v| --version   Show the version (${VERSION}) of git-redate"
+            echo "  -v| --version   Show the version of git-redate"
             echo "  -l| --limit N   Process commits in chunks/batches of size N, default=20."
             if [ -f "$SETTINGS_FILE" ]; then
                 echo "Configuration (${SETTINGS_FILE}):"
